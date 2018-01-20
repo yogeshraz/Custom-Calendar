@@ -7,7 +7,7 @@ Custom-calendar is developed to help made your own calendar with lesser boilerpl
 For running this demo project, you need to just drag and drop into this project.
 
 # Prerequisites
-To build a project using the RZCarMovement for iOS, you need version 9.0 or later of Xcode.
+To build a project using the custom calendar for iOS, you need version 9.0 or later of Xcode.
 
 # Usage
 
