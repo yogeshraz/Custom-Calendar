@@ -1,13 +1,54 @@
 import Foundation
 import Darwin
 
-/// From <sys/ptrace.h>
-private let PT_DENY_ATTACH: CInt = 31
-
 final class AntiDebug {
+    
+    /// Check if debugger is already attached
+    static func isDebuggerAttached() -> Bool {
+        var info = kinfo_proc()
+        var size = MemoryLayout.stride(ofValue: info)
+        
+        var name: [Int32] = [
+            CTL_KERN,
+            KERN_PROC,
+            KERN_PROC_PID,
+            getpid()
+        ]
+        
+        let result = sysctl(
+            &name,
+            u_int(name.count),
+            &info,
+            &size,
+            nil,
+            0
+        )
+        
+        if result != 0 {
+            perror("sysctl failed")
+            return false
+        }
+        
+        return (info.kp_proc.p_flag & P_TRACED) != 0
+    }
+    
+    /// Deny debugger from attaching (works only on device)
     static func denyDebugger() {
         #if !DEBUG
-        ptrace(PT_DENY_ATTACH, 0, nil, 0)
+        #if targetEnvironment(simulator)
+        // Skip on simulator
+        #else
+        guard let handle = dlopen(nil, RTLD_NOW) else { return }
+        defer { dlclose(handle) }
+        
+        typealias PtraceType = @convention(c) (CInt, pid_t, UnsafeMutableRawPointer?, CInt) -> CInt
+        let sym = dlsym(handle, "ptrace")
+        
+        if let ptraceFunc = unsafeBitCast(sym, to: Optional<PtraceType>.self) {
+            let PT_DENY_ATTACH: CInt = 31
+            _ = ptraceFunc(PT_DENY_ATTACH, 0, nil, 0)
+        }
+        #endif
         #endif
     }
 }
