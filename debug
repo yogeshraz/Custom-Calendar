@@ -1,0 +1,28 @@
+import Foundation
+
+#if DEBUG
+// Don't use in debug mode, otherwise Xcode won't be able to attach
+#else
+import Darwin
+
+private func denyDebuggerAttach() {
+    // Define constant
+    let PT_DENY_ATTACH: CInt = 31
+    
+    // Call ptrace to block debugger attach
+    ptrace(PT_DENY_ATTACH, 0, nil, 0)
+}
+
+#endif
+
+
+
+
+
+
+
+#if !DEBUG
+        denyDebuggerAttach()
+        #endif
+
+        return true
