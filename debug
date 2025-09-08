@@ -1,9 +1,13 @@
-static func denyDebugger() {
-    #if !DEBUG
-    #if targetEnvironment(simulator)
-    // Do nothing on Simulator
-    #else
-    ptrace(PT_DENY_ATTACH, 0, nil, 0)
-    #endif
-    #endif
+import Foundation
+import Darwin
+
+/// From <sys/ptrace.h>
+private let PT_DENY_ATTACH: CInt = 31
+
+final class AntiDebug {
+    static func denyDebugger() {
+        #if !DEBUG
+        ptrace(PT_DENY_ATTACH, 0, nil, 0)
+        #endif
+    }
 }
